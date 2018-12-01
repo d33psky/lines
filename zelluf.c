@@ -15,10 +15,10 @@ typedef struct {
 typedef struct {
 	int x1;
 	int y1;
-	int x2;
-	int y2;
 	int x1_speed;
 	int y1_speed;
+	int x2;
+	int y2;
 	int x2_speed;
 	int y2_speed;
 	int color;
@@ -27,19 +27,21 @@ typedef struct {
 Point pointer;
 Point click_pointer;
 
-Line line;
-int x_max = 600;
-int y_max = 500;
+#define LINES 25
+int head = 0;
+int tail = 0;
+Line line[LINES];
+
+int x_max = 900;
+int y_max = 700;
 
 bool mouse_click = false;
-bool rotate = false;
 
 void on_key(S2D_Event e) {
   switch (e.type) {
     case S2D_KEY_DOWN:
       printf("Key down: %s\n", e.key);
       if (strcmp(e.key, "Escape") == 0) S2D_Close(window);
-      if (strcmp(e.key, "R") == 0) rotate = rotate ? false : true;
       break;
 
     case S2D_KEY_HELD:
@@ -51,7 +53,6 @@ void on_key(S2D_Event e) {
       break;
   }
 }
-
 
 void print_mouse_button(int e) {
   switch (e) {
@@ -73,10 +74,8 @@ void print_mouse_button(int e) {
   }
 }
 
-
 void on_mouse(S2D_Event e) {
 //  puts("=== Mouse Event ===");
-
   switch (e.type) {
     case S2D_MOUSE_DOWN:
       puts("Mouse down");
@@ -97,28 +96,28 @@ void on_mouse(S2D_Event e) {
       puts("Mouse scroll");
       if (e.direction == S2D_MOUSE_SCROLL_NORMAL) {
         puts("Direction normal");
-        line.x1_speed *= 2;
-        line.y1_speed *= 2;
-        line.x2_speed *= 2;
-        line.y2_speed *= 2;
-        printf("%d,%d %d,%d\n", line.x1_speed, line.y1_speed, line.x2_speed, line.y2_speed);
-        if (abs(line.x1_speed) > 32) line.x1_speed = 1;
-        if (abs(line.y1_speed) > 32) line.y1_speed = 1;
-        if (abs(line.x2_speed) > 32) line.x2_speed = 1;
-        if (abs(line.y2_speed) > 32) line.y2_speed = 1;
-        printf("%d,%d %d,%d\n", line.x1_speed, line.y1_speed, line.x2_speed, line.y2_speed);
+        line[head].x1_speed *= 2;
+        line[head].y1_speed *= 2;
+        line[head].x2_speed *= 2;
+        line[head].y2_speed *= 2;
+        printf("%d,%d %d,%d\n", line[head].x1_speed, line[head].y1_speed, line[head].x2_speed, line[head].y2_speed);
+        if (abs(line[head].x1_speed) > 32) line[head].x1_speed = 1;
+        if (abs(line[head].y1_speed) > 32) line[head].y1_speed = 1;
+        if (abs(line[head].x2_speed) > 32) line[head].x2_speed = 1;
+        if (abs(line[head].y2_speed) > 32) line[head].y2_speed = 1;
+        printf("%d,%d %d,%d\n", line[head].x1_speed, line[head].y1_speed, line[head].x2_speed, line[head].y2_speed);
       } else if (e.direction == S2D_MOUSE_SCROLL_INVERTED) {
         puts("Direction inverted");
-        line.x1_speed /= 2;
-        line.y1_speed /= 2;
-        line.x2_speed /= 2;
-        line.y2_speed /= 2;
-        printf("%d,%d %d,%d\n", line.x1_speed, line.y1_speed, line.x2_speed, line.y2_speed);
-        if (abs(line.x1_speed) < 1) line.x1_speed = 1;
-        if (abs(line.y1_speed) < 1) line.y1_speed = 1;
-        if (abs(line.x2_speed) < 1) line.x2_speed = 1;
-        if (abs(line.y2_speed) < 1) line.y2_speed = 1;
-        printf("%d,%d %d,%d\n", line.x1_speed, line.y1_speed, line.x2_speed, line.y2_speed);
+        line[head].x1_speed /= 2;
+        line[head].y1_speed /= 2;
+        line[head].x2_speed /= 2;
+        line[head].y2_speed /= 2;
+        printf("%d,%d %d,%d\n", line[head].x1_speed, line[head].y1_speed, line[head].x2_speed, line[head].y2_speed);
+        if (abs(line[head].x1_speed) < 1) line[head].x1_speed = 1;
+        if (abs(line[head].y1_speed) < 1) line[head].y1_speed = 1;
+        if (abs(line[head].x2_speed) < 1) line[head].x2_speed = 1;
+        if (abs(line[head].y2_speed) < 1) line[head].y2_speed = 1;
+        printf("%d,%d %d,%d\n", line[head].x1_speed, line[head].y1_speed, line[head].x2_speed, line[head].y2_speed);
       }
       printf("delta x: %i\ndelta y: %i\n", e.delta_x, e.delta_y);
       break;
@@ -132,53 +131,64 @@ void on_mouse(S2D_Event e) {
 //  if (e.type != S2D_MOUSE_SCROLL) printf("x: %i, y: %i\n", e.x, e.y);
 }
 
-
-void on_controller(S2D_Event e) {
-  puts("=== Controller Event ===");
-  printf("Controller #%i\n", e.which);
-
-  switch (e.type) {
-    case S2D_AXIS:
-      printf("Axis: %i\n", e.axis);
-      printf("Value: %i\n", e.value);
-      break;
-
-    case S2D_BUTTON_DOWN:
-      printf("Button #%i down\n", e.button);
-      break;
-
-    case S2D_BUTTON_UP:
-      printf("Button #%i up\n", e.button);
-      break;
-  }
+void init() {
+	line[head].x1 = 200;
+	line[head].y1 = 200;
+	line[head].x2 = 300;
+	line[head].y2 = 300;
+	line[head].x1_speed = 2;
+	line[head].y1_speed = 3;
+	line[head].x2_speed = 4;
+	line[head].y2_speed = 5;
+	line[head].color = 1;
 }
 
-// update app state, calculate here, do not draw stuff
+// update app state and calculate here, do not draw stuff here
 void update() {
-  pointer.x = window->mouse.x;
-  pointer.y = window->mouse.y;
+	pointer.x = window->mouse.x;
+	pointer.y = window->mouse.y;
 
-  line.x1 += line.x1_speed;
-  line.y1 += line.y1_speed;
-  if (0 > line.x1 || line.x1 > x_max) {
-	  line.x1_speed *= -1;
-	  line.x1 += line.x1_speed;
-  }
-  if (0 > line.y1 || line.y1 > y_max) {
-	  line.y1_speed *= -1;
-	  line.y1 += line.y1_speed;
-  }
+	int newhead = 0;
+	if (head >= LINES -1) {
+		newhead = 0;
+	} else {
+		newhead = head + 1;
+	}
+	line[newhead].x1 = line[head].x1;
+	line[newhead].y1 = line[head].y1;
+	line[newhead].x2 = line[head].x2;
+	line[newhead].y2 = line[head].y2;
+	line[newhead].x1_speed = line[head].x1_speed;
+	line[newhead].y1_speed = line[head].y1_speed;
+	line[newhead].x2_speed = line[head].x2_speed;
+	line[newhead].y2_speed = line[head].y2_speed;
+	line[newhead].color = line[head].color;
+	head = newhead;
+	if (tail < LINES - 1) {
+		tail++;
+	}
 
-  line.x2 += line.x2_speed;
-  line.y2 += line.y2_speed;
-  if (0 > line.x2 || line.x2 > x_max) {
-	  line.x2_speed *= -1;
-	  line.x2 += line.x2_speed;
-  }
-  if (0 > line.y2 || line.y2 > y_max) {
-	  line.y2_speed *= -1;
-	  line.y2 += line.y2_speed;
-  }
+	line[head].x1 += line[head].x1_speed;
+	line[head].y1 += line[head].y1_speed;
+	if (0 > line[head].x1 || line[head].x1 > x_max) {
+		line[head].x1_speed *= -1;
+		line[head].x1 += line[head].x1_speed;
+	}
+	if (0 > line[head].y1 || line[head].y1 > y_max) {
+		line[head].y1_speed *= -1;
+		line[head].y1 += line[head].y1_speed;
+	}
+
+	line[head].x2 += line[head].x2_speed;
+	line[head].y2 += line[head].y2_speed;
+	if (0 > line[head].x2 || line[head].x2 > x_max) {
+		line[head].x2_speed *= -1;
+		line[head].x2 += line[head].x2_speed;
+	}
+	if (0 > line[head].y2 || line[head].y2 > y_max) {
+		line[head].y2_speed *= -1;
+		line[head].y2 += line[head].y2_speed;
+	}
 
 }
 
@@ -187,34 +197,16 @@ void render() {
 
   // Lines
 
-
-  S2D_DrawLine(
-    line.x1, line.y1, line.x2, line.y2,
-    1,
-    1, 1, 1, 1,
-    1, 1, 1, 1,
-    1, 1, 1, 1,
-    1, 1, 1, 1
-  );
-/*
-  S2D_DrawLine(
-    1, 1, 599, 499,
-    1,
-    1, 1, 1, 1,
-    1, 1, 1, 1,
-    1, 1, 1, 1,
-    1, 1, 1, 1
-  );
-
-  S2D_DrawLine(
-    200, 20, 355, 480,
-    25,
-    1, 0, 0, 0.5,
-    0, 1, 0, 0.5,
-    0, 0, 1, 0.5,
-    1, 0, 1, 0.5
-  );
-*/
+  for (int line_id = 0; line_id <= tail; line_id++) {
+	  S2D_DrawLine(
+			  line[line_id].x1, line[line_id].y1, line[line_id].x2, line[line_id].y2,
+			  1,
+			  1, 1, 1, 1,
+			  1, 1, 1, 1,
+			  1, 1, 1, 1,
+			  1, 1, 1, 1
+	  );
+  }
 
   // Window stats
 
@@ -235,21 +227,19 @@ void render() {
                  click_pointer.x + 9, click_pointer.y + 8,  0, 1, 0, 1,
                  click_pointer.x - 9, click_pointer.y + 8,  0, 1, 0, 1);
     mouse_click = false;
-    line.x1 = click_pointer.x;
-    line.y1 = click_pointer.y;
+    line[head].x1 = click_pointer.x;
+    line[head].y1 = click_pointer.y;
   }
 }
 
 
 int main() {
+    S2D_Diagnostics(true);
 
-  S2D_Diagnostics(true);
+    window = S2D_CreateWindow("zelluf doen", x_max, y_max, update, render, S2D_RESIZABLE);
 
-  window = S2D_CreateWindow("zelluf doen", 600, 500, update, render, S2D_RESIZABLE);
-
-  window->on_key        = on_key;
-  window->on_mouse      = on_mouse;
-  window->on_controller = on_controller;
+    window->on_key        = on_key;
+    window->on_mouse      = on_mouse;
 
   // Change viewport scaling modes:
   //   window->viewport.mode = S2D_FIXED;
@@ -257,21 +247,13 @@ int main() {
   //   window->viewport.mode = S2D_SCALE;  // Default
   //   window->viewport.mode = S2D_STRETCH;
 
-  puts("Press `R` key to rotate textures.");
+    puts("Press escape to exit.");
 
-	line.x1 = 200;
-	line.y1 = 200;
-	line.x2 = 300;
-	line.y2 = 300;
-	line.x1_speed = 2;
-	line.y1_speed = 3;
-	line.x2_speed = 3;
-	line.y2_speed = 4;
-	line.color = 1;
+    init();
 
-  S2D_Show(window);
+	S2D_Show(window);
 
-  S2D_FreeWindow(window);
+	S2D_FreeWindow(window);
 
-  return 0;
+	return 0;
 }

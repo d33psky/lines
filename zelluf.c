@@ -1,8 +1,12 @@
+#include <math.h>
 #include <simple2d.h>
 
 S2D_Window *window;
 S2D_Text   *fps;
 S2D_Text   *fps_val;
+
+int x_max = 900;
+int y_max = 700;
 
 const char *font = "media/bitstream_vera/vera.ttf";
 int font_size = 20;
@@ -29,6 +33,26 @@ typedef struct {
 	float b1_speed;
 } Line;
 
+typedef struct {
+	int x;
+	int x_speed;
+	int y;
+	int y_speed;
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+	int length;
+	float angle;
+	float angle_speed;
+	float r1;
+	float r1_speed;
+	float g1;
+	float g1_speed;
+	float b1;
+	float b1_speed;
+} Stick;
+
 Point pointer;
 Point click_pointer;
 
@@ -36,9 +60,7 @@ Point click_pointer;
 int head = 0;
 int tail = 0;
 Line line[LINES];
-
-int x_max = 900;
-int y_max = 700;
+Stick stick[LINES];
 
 bool mouse_click = false;
 
@@ -151,6 +173,24 @@ void init() {
 	line[head].g1_speed = -0.002;
 	line[head].b1 = 0.1;
 	line[head].b1_speed = 0.003;
+
+	stick[head].x = 400;
+	stick[head].y = 400;
+	stick[head].x1 = 200;
+	stick[head].y1 = 200;
+	stick[head].x2 = 300;
+	stick[head].y2 = 300;
+	stick[head].x_speed = 3;
+	stick[head].y_speed = 4;
+	stick[head].angle = 0.0;
+	stick[head].angle_speed = 0.1;
+	stick[head].length = 50;
+	stick[head].r1 = 1;
+	stick[head].r1_speed = -0.001;
+	stick[head].g1 = 0.5;
+	stick[head].g1_speed = 0.002;
+	stick[head].b1 = 0.7;
+	stick[head].b1_speed = -0.003;
 }
 
 void colorcycle(float *color, float *color_speed) {
@@ -165,6 +205,29 @@ void colorcycle(float *color, float *color_speed) {
 	}
 }
 
+int intrand(int number) {
+	float rnd = ((float) rand() / (float) RAND_MAX); // rnd between 0 and 1
+	int retval = 0;
+	if (rnd > 0.51) {
+		if (number + 1 > 10) {
+			retval = number;
+		} else {
+			retval = number + 1;
+		}
+	} else {
+		if (number - 1 < -10) {
+			retval = number;
+		} else {
+			retval = number - 1;
+		}
+	}
+	if (retval == 0) {
+		retval = number;
+	}
+	printf("number=%d -> %d rnd=%f\n", number, retval, rnd);
+	return (retval);
+}
+
 // update app state and calculate here, do not draw stuff here
 void update() {
 	pointer.x = window->mouse.x;
@@ -176,20 +239,36 @@ void update() {
 	} else {
 		newhead = head + 1;
 	}
-	line[newhead].x1 = line[head].x1;
-	line[newhead].y1 = line[head].y1;
-	line[newhead].x2 = line[head].x2;
-	line[newhead].y2 = line[head].y2;
+
+	line[newhead].x1       = line[head].x1;
+	line[newhead].y1       = line[head].y1;
+	line[newhead].x2       = line[head].x2;
+	line[newhead].y2       = line[head].y2;
 	line[newhead].x1_speed = line[head].x1_speed;
 	line[newhead].y1_speed = line[head].y1_speed;
 	line[newhead].x2_speed = line[head].x2_speed;
 	line[newhead].y2_speed = line[head].y2_speed;
-	line[newhead].r1 = line[head].r1;
+	line[newhead].r1       = line[head].r1;
 	line[newhead].r1_speed = line[head].r1_speed;
-	line[newhead].g1 = line[head].g1;
+	line[newhead].g1       = line[head].g1;
 	line[newhead].g1_speed = line[head].g1_speed;
-	line[newhead].b1 = line[head].b1;
+	line[newhead].b1       = line[head].b1;
 	line[newhead].b1_speed = line[head].b1_speed;
+
+	stick[newhead].x           = stick[head].x;
+	stick[newhead].y           = stick[head].y;
+	stick[newhead].x_speed     = stick[head].x_speed;
+	stick[newhead].y_speed     = stick[head].y_speed;
+	stick[newhead].angle       = stick[head].angle;
+	stick[newhead].angle_speed = stick[head].angle_speed;
+	stick[newhead].length      = stick[head].length;
+	stick[newhead].r1          = stick[head].r1;
+	stick[newhead].r1_speed    = stick[head].r1_speed;
+	stick[newhead].g1          = stick[head].g1;
+	stick[newhead].g1_speed    = stick[head].g1_speed;
+	stick[newhead].b1          = stick[head].b1;
+	stick[newhead].b1_speed    = stick[head].b1_speed;
+
 	head = newhead;
 	if (tail < LINES - 1) {
 		tail++;
@@ -198,22 +277,22 @@ void update() {
 	line[head].x1 += line[head].x1_speed;
 	line[head].y1 += line[head].y1_speed;
 	if (0 > line[head].x1 || line[head].x1 > x_max) {
-		line[head].x1_speed *= -1;
+		line[head].x1_speed = -1 * intrand(line[head].x1_speed);
 		line[head].x1 += line[head].x1_speed;
 	}
 	if (0 > line[head].y1 || line[head].y1 > y_max) {
-		line[head].y1_speed *= -1;
+		line[head].y1_speed = -1 * intrand(line[head].y1_speed);
 		line[head].y1 += line[head].y1_speed;
 	}
 
 	line[head].x2 += line[head].x2_speed;
 	line[head].y2 += line[head].y2_speed;
 	if (0 > line[head].x2 || line[head].x2 > x_max) {
-		line[head].x2_speed *= -1;
+		line[head].x2_speed = -1 * intrand(line[head].x2_speed);
 		line[head].x2 += line[head].x2_speed;
 	}
 	if (0 > line[head].y2 || line[head].y2 > y_max) {
-		line[head].y2_speed *= -1;
+		line[head].y2_speed = -1 * intrand(line[head].y2_speed);
 		line[head].y2 += line[head].y2_speed;
 	}
 
@@ -221,6 +300,45 @@ void update() {
 	colorcycle(&line[head].g1, &line[head].g1_speed);
 	colorcycle(&line[head].b1, &line[head].b1_speed);
 
+
+	stick[head].x += stick[head].x_speed;
+	stick[head].y += stick[head].y_speed;
+	stick[head].angle += stick[head].angle_speed;
+	while (stick[head].angle > 2 * M_PI) {
+		stick[head].angle -= 2 * M_PI;
+	}
+	while (stick[head].angle < 2 * M_PI) {
+		stick[head].angle += 2 * M_PI;
+	}
+
+	stick[head].x1 = stick[head].x + stick[head].length * cos(stick[head].angle);
+	stick[head].y1 = stick[head].y + stick[head].length * sin(stick[head].angle);
+	if (0 > stick[head].x1 || stick[head].x1 > x_max) {
+		stick[head].x_speed = -1 * intrand(stick[head].x_speed);
+		stick[head].angle_speed *= -1;// * intrand(stick[head].angle_speed);
+		stick[head].x1 = stick[head].x + stick[head].length * cos(stick[head].angle);
+	}
+	if (0 > stick[head].y1 || stick[head].y1 > y_max) {
+		stick[head].y_speed = -1 * intrand(stick[head].y_speed);
+		stick[head].angle_speed *= -1;// * intrand(stick[head].angle_speed);
+		stick[head].y1 = stick[head].y + stick[head].length * sin(stick[head].angle);
+	}
+	stick[head].x2 = stick[head].x - stick[head].length * cos(stick[head].angle);
+	stick[head].y2 = stick[head].y - stick[head].length * sin(stick[head].angle);
+	if (0 > stick[head].x2 || stick[head].x2 > x_max) {
+		stick[head].x_speed = -1 * intrand(stick[head].x_speed);
+		stick[head].angle_speed *= -1;// * intrand(stick[head].angle_speed);
+		stick[head].x2 = stick[head].x - stick[head].length * cos(stick[head].angle);
+	}
+	if (0 > stick[head].y2 || stick[head].y2 > y_max) {
+		stick[head].y_speed = -1 * intrand(stick[head].y_speed);
+		stick[head].angle_speed *= -1;// * intrand(stick[head].angle_speed);
+		stick[head].y2 = stick[head].y - stick[head].length * sin(stick[head].angle);
+	}
+
+	colorcycle(&stick[head].r1, &stick[head].r1_speed);
+	colorcycle(&stick[head].g1, &stick[head].g1_speed);
+	colorcycle(&stick[head].b1, &stick[head].b1_speed);
 }
 
 // draw stuff
@@ -229,6 +347,7 @@ void render() {
   // Lines
 
   for (int line_id = 0; line_id <= tail; line_id++) {
+
 	  S2D_DrawLine(
 			  line[line_id].x1, line[line_id].y1, line[line_id].x2, line[line_id].y2,
 			  1,
@@ -236,6 +355,15 @@ void render() {
 			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1,
 			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1,
 			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1
+	  );
+
+	  S2D_DrawLine(
+			  stick[line_id].x1, stick[line_id].y1, stick[line_id].x2, stick[line_id].y2,
+			  1,
+			  stick[line_id].r1, stick[line_id].g1, stick[line_id].b1, 1,
+			  stick[line_id].r1, stick[line_id].g1, stick[line_id].b1, 1,
+			  stick[line_id].r1, stick[line_id].g1, stick[line_id].b1, 1,
+			  stick[line_id].r1, stick[line_id].g1, stick[line_id].b1, 1
 	  );
   }
 

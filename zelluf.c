@@ -224,7 +224,7 @@ int intrand(int number) {
 	if (retval == 0) {
 		retval = number;
 	}
-	printf("number=%d -> %d rnd=%f\n", number, retval, rnd);
+	//printf("number=%d -> %d rnd=%f\n", number, retval, rnd);
 	return (retval);
 }
 
@@ -334,6 +334,26 @@ void update() {
 		stick[head].y_speed = -1 * intrand(stick[head].y_speed);
 		stick[head].angle_speed *= -1;// * intrand(stick[head].angle_speed);
 		stick[head].y2 = stick[head].y - stick[head].length * sin(stick[head].angle);
+	}
+
+	// stick escape safety guard
+	if (0 > stick[head].x || stick[head].x > x_max) {
+		int new_x = x_max / 2;
+		int new_x_speed = 3;
+		printf("WARN: reset stick x from %d to %d and speed from %d to %d\n",
+				stick[head].x, new_x,
+				stick[head].x_speed, new_x_speed);
+		stick[head].x = new_x;
+		stick[head].x_speed = new_x_speed;
+	}
+	if (0 > stick[head].y || stick[head].y > y_max) {
+		int new_y = y_max / 2;
+		int new_y_speed = 4;
+		printf("WARN: reset stick y from %d to %d and speed from %d to %d\n",
+				stick[head].y, new_y,
+				stick[head].y_speed, new_y_speed);
+		stick[head].y = new_y;
+		stick[head].y_speed = new_y_speed;
 	}
 
 	colorcycle(&stick[head].r1, &stick[head].r1_speed);

@@ -56,7 +56,7 @@ typedef struct {
 Point pointer;
 Point click_pointer;
 
-#define LINES 25
+#define LINES 50
 int head = 0;
 int tail = 0;
 Line line[LINES];
@@ -232,6 +232,8 @@ int intrand(int number) {
 void update() {
 	pointer.x = window->mouse.x;
 	pointer.y = window->mouse.y;
+	x_max = window->width;
+	y_max = window->height;
 
 	int newhead = 0;
 	if (head >= LINES -1) {
@@ -416,15 +418,9 @@ int main() {
     S2D_Diagnostics(true);
 
     window = S2D_CreateWindow("zelluf doen", x_max, y_max, update, render, S2D_RESIZABLE);
-
+    window->viewport.mode = S2D_EXPAND;
     window->on_key        = on_key;
     window->on_mouse      = on_mouse;
-
-  // Change viewport scaling modes:
-  //   window->viewport.mode = S2D_FIXED;
-  //   window->viewport.mode = S2D_EXPAND;
-  //   window->viewport.mode = S2D_SCALE;  // Default
-  //   window->viewport.mode = S2D_STRETCH;
 
     puts("Press escape to exit.");
 

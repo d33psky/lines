@@ -21,7 +21,12 @@ typedef struct {
 	int y2;
 	int x2_speed;
 	int y2_speed;
-	int color;
+	float r1;
+	float r1_speed;
+	float g1;
+	float g1_speed;
+	float b1;
+	float b1_speed;
 } Line;
 
 Point pointer;
@@ -140,7 +145,23 @@ void init() {
 	line[head].y1_speed = 3;
 	line[head].x2_speed = 4;
 	line[head].y2_speed = 5;
-	line[head].color = 1;
+	line[head].r1 = 0.4;
+	line[head].r1_speed = 0.001;
+	line[head].g1 = 1;
+	line[head].g1_speed = -0.02;
+	line[head].b1 = 0.1;
+	line[head].b1_speed = 0.03;
+}
+
+float colorcycle(float color, float color_speed) {
+	float newcolor = color + color_speed;
+	if (newcolor < 0.0) {
+		newcolor = 1.0;
+	}
+	if (newcolor > 1.0) {
+		newcolor = 0.0;
+	}
+	return (newcolor);
 }
 
 // update app state and calculate here, do not draw stuff here
@@ -162,7 +183,12 @@ void update() {
 	line[newhead].y1_speed = line[head].y1_speed;
 	line[newhead].x2_speed = line[head].x2_speed;
 	line[newhead].y2_speed = line[head].y2_speed;
-	line[newhead].color = line[head].color;
+	line[newhead].r1 = line[head].r1;
+	line[newhead].r1_speed = line[head].r1_speed;
+	line[newhead].g1 = line[head].g1;
+	line[newhead].g1_speed = line[head].g1_speed;
+	line[newhead].b1 = line[head].b1;
+	line[newhead].b1_speed = line[head].b1_speed;
 	head = newhead;
 	if (tail < LINES - 1) {
 		tail++;
@@ -190,6 +216,10 @@ void update() {
 		line[head].y2 += line[head].y2_speed;
 	}
 
+	line[head].r1 = colorcycle(line[head].r1, line[head].r1_speed);
+	line[head].g1 = colorcycle(line[head].g1, line[head].g1_speed);
+	line[head].b1 = colorcycle(line[head].b1, line[head].b1_speed);
+
 }
 
 // draw stuff
@@ -201,10 +231,10 @@ void render() {
 	  S2D_DrawLine(
 			  line[line_id].x1, line[line_id].y1, line[line_id].x2, line[line_id].y2,
 			  1,
-			  1, 1, 1, 1,
-			  1, 1, 1, 1,
-			  1, 1, 1, 1,
-			  1, 1, 1, 1
+			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1,
+			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1,
+			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1,
+			  line[line_id].r1, line[line_id].g1, line[line_id].b1, 1
 	  );
   }
 

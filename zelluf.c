@@ -148,20 +148,21 @@ void init() {
 	line[head].r1 = 0.4;
 	line[head].r1_speed = 0.001;
 	line[head].g1 = 1;
-	line[head].g1_speed = -0.02;
+	line[head].g1_speed = -0.002;
 	line[head].b1 = 0.1;
-	line[head].b1_speed = 0.03;
+	line[head].b1_speed = 0.003;
 }
 
-float colorcycle(float color, float color_speed) {
-	float newcolor = color + color_speed;
-	if (newcolor < 0.0) {
-		newcolor = 1.0;
+void colorcycle(float *color, float *color_speed) {
+	*color += *color_speed;
+	if (*color < 0.0) {
+		*color = 0.0;
+		*color_speed *= -1;
 	}
-	if (newcolor > 1.0) {
-		newcolor = 0.0;
+	if (*color > 1.0) {
+		*color = 1.0;
+		*color_speed *= -1;
 	}
-	return (newcolor);
 }
 
 // update app state and calculate here, do not draw stuff here
@@ -216,9 +217,9 @@ void update() {
 		line[head].y2 += line[head].y2_speed;
 	}
 
-	line[head].r1 = colorcycle(line[head].r1, line[head].r1_speed);
-	line[head].g1 = colorcycle(line[head].g1, line[head].g1_speed);
-	line[head].b1 = colorcycle(line[head].b1, line[head].b1_speed);
+	colorcycle(&line[head].r1, &line[head].r1_speed);
+	colorcycle(&line[head].g1, &line[head].g1_speed);
+	colorcycle(&line[head].b1, &line[head].b1_speed);
 
 }
 

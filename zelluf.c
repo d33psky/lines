@@ -56,7 +56,7 @@ typedef struct {
 Point pointer;
 Point click_pointer;
 
-#define LINES 50
+#define LINES 90
 int head = 0;
 int tail = 0;
 Line line[LINES];
@@ -69,11 +69,14 @@ void on_key(S2D_Event e) {
     case S2D_KEY_DOWN:
       printf("Key down: %s\n", e.key);
       if (strcmp(e.key, "Escape") == 0) S2D_Close(window);
+      if (strcmp(e.key, "F") == 0) {
+          window->flags = S2D_FULLSCREEN;
+      }
       break;
 
-    case S2D_KEY_HELD:
-      printf("Key held: %s\n", e.key);
-      break;
+//    case S2D_KEY_HELD:
+//      printf("Key held: %s\n", e.key);
+//      break;
 
     case S2D_KEY_UP:
       printf("Key up: %s\n", e.key);
@@ -397,27 +400,27 @@ void render() {
 
   // Mouse positions
 
-  S2D_DrawQuad(pointer.x - 5, pointer.y - 7,  1, 1, 1, 1,
-               pointer.x + 5, pointer.y - 7,  1, 1, 1, 1,
-               pointer.x + 5, pointer.y + 4,  1, 1, 1, 1,
-               pointer.x - 5, pointer.y + 4,  1, 1, 1, 1);
-
-  if (mouse_click) {
-    S2D_DrawQuad(click_pointer.x - 9, click_pointer.y - 11, 0, 1, 0, 1,
-                 click_pointer.x + 9, click_pointer.y - 11, 0, 1, 0, 1,
-                 click_pointer.x + 9, click_pointer.y + 8,  0, 1, 0, 1,
-                 click_pointer.x - 9, click_pointer.y + 8,  0, 1, 0, 1);
-    mouse_click = false;
-    line[head].x1 = click_pointer.x;
-    line[head].y1 = click_pointer.y;
-  }
+//  S2D_DrawQuad(pointer.x - 5, pointer.y - 7,  1, 1, 1, 1,
+//               pointer.x + 5, pointer.y - 7,  1, 1, 1, 1,
+//               pointer.x + 5, pointer.y + 4,  1, 1, 1, 1,
+//               pointer.x - 5, pointer.y + 4,  1, 1, 1, 1);
+//
+//  if (mouse_click) {
+//    S2D_DrawQuad(click_pointer.x - 9, click_pointer.y - 11, 0, 1, 0, 1,
+//                 click_pointer.x + 9, click_pointer.y - 11, 0, 1, 0, 1,
+//                 click_pointer.x + 9, click_pointer.y + 8,  0, 1, 0, 1,
+//                 click_pointer.x - 9, click_pointer.y + 8,  0, 1, 0, 1);
+//    mouse_click = false;
+//    line[head].x1 = click_pointer.x;
+//    line[head].y1 = click_pointer.y;
+//  }
 }
 
 
 int main() {
     S2D_Diagnostics(true);
 
-    window = S2D_CreateWindow("zelluf doen", x_max, y_max, update, render, S2D_RESIZABLE);
+    window = S2D_CreateWindow("zelluf doen", x_max, y_max, update, render, S2D_RESIZABLE|S2D_FULLSCREEN);
     window->viewport.mode = S2D_EXPAND;
     window->on_key        = on_key;
     window->on_mouse      = on_mouse;
